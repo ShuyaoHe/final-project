@@ -12,12 +12,18 @@ function FilterByClass(_){
 
   let tradeData;
 
-  function exports(tradesByImporter, tradesByExporter, tradesByClass){
-    _w = _.clientWidth;
-    _h = _.clientHeight;
-    _r = _w/2;
+  const _dispatch = d3.dispatch('clickPie');
+
+  function exports(tradesByClass){
+    const root = this;
+    console.log(root);
+    _w = root.clientWidth;
+    _h = root.clientHeight;
+    _r = _w/2.5;
     _color = d3.scaleOrdinal(d3.schemeSpectral[11]);
     _padAngle = .03;
+
+    console.log(tradesByClass);
 
     tradeData = tradesByClass
       .map(function(d){
@@ -39,24 +45,36 @@ function FilterByClass(_){
        .outerRadius(_r);
 
     //append DOM elements
-    const root = d3.select(_);
 
-		let svg = root//svg & .class
-			.selectAll('.filter-layer-svg')
+
+		let svg = d3.select(this)//svg & .class
+			.selectAll('.filter-layer-svg1')
 			.data([1])
 		svg = svg.enter().append('svg')
-			.attr('class','filter-layer-svg')
+			.attr('class','filter-layer-svg1')
 			.merge(svg)
 			.attr('width',_w)
 			.attr('height',_h)
 			.style('float', 'left')
 			.style('top',0)
-			.style('left',0);
-      // .attr("transform", "translate(" + (_r-380) + "," + (_r-450)+ ")");
+			.style('left',0)
+      .attr("transform", "translate(20,20)");
 
     const tradesNodes = svg.selectAll('.trade')
       .data(_pie);//_pie not include tradeData
     console.log(tradesNodes);
+
+    // let div = root
+    //   .selectAll("tooltip")
+    //   .data([1])
+    // div = div.enter().append("div")
+    //   .attr("class", "tooltip")
+    //   .style("opacity", 0)
+    //   .style("position", "absolute")
+	  //   .style("z-index", "10")
+	  //   .style('width','60')
+    //   .style('height','28');
+
 		const tradesEnter = tradesNodes.enter()
 			.append('g')
 			.attr('class','trade')
@@ -71,6 +89,20 @@ function FilterByClass(_){
       .style("fill-opacity", .35)
       .style("stroke", "lightgrey")
       .style("stroke-width", "1px");
+      // .on("mouseover", function(d) {
+      //       div .transition()
+      //           .duration(200)
+      //           .style("opacity", .9);
+      //       div	.html(d.data.class)
+      //           .style("left", (d3.event.pageX) + "px")
+      //           .style("top", (d3.event.pageY - 28) + "px");
+      //       })
+      //   .on("mouseout", function(d) {
+      //       div.transition()
+      //           .duration(500)
+      //           .style("opacity", 0);
+
+
     tradesEnter
       .append('text')
       .style('text-anchor','middle')
@@ -80,10 +112,48 @@ function FilterByClass(_){
                 d.outerRadius = _r;
                 return "translate(" + _arc.centroid(d) + ")";})//this gives us a pair of coordinates like [50, 50]
       .style('fill', 'lightgrey')
-      .text(d => d.key);
+      .text(d => d.data.key);//hover
 
+
+      d3.selectAll('.trade')
+        .on('click', (d)=>{
+            let thisClass = d.data.key;
+            console.log(thisClass);
+            const selectedClass = tradesByClass.filter((dd)=>{
+              return dd.key == thisClass;
+            })
+            _dispatch.call('clickPie', this, selectedClass);
+
+
+            d3.selectAll('g.countryCircle').selectAll("circle").style("fill", "lightgrey");
+            var getCircles = d3.selectAll('g.countryCircle').filter(function(dd) {
+              // console.log(this);
+              // console.log(dd);
+              let returnThis = false;
+              if(dd["imports"] == undefined) { return false; }
+              dd.imports.forEach(function(thisImport) {
+                if(thisImport.class === thisClass) {
+                  returnThis = true;
+                }
+              });
+              return returnThis;
+            });
+            console.log(getCircles);
+            getCircles.selectAll("circle").style("fill", "red");
+          // console.log(d);
+         })
+
+
+  }
+
+  exports.on = function(eventType,cb){
+    _dispatch.on(eventType,cb);
+    return this;
   }
      return exports;
 
 }
   export default FilterByClass;
+
+
+  export const networkFilter = FilterByClass();
