@@ -29,8 +29,7 @@ function FilterByCountry(_){
       .padAngle(_padAngle)
       .value((d) => { return d.sum; })(countryPoint);
 
-    console.log(_pie);
-
+    
     const _arc =d3.arc()
        .innerRadius(_r-30)
        .outerRadius(_r);

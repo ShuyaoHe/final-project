@@ -16,7 +16,7 @@ function FilterByClass(_){
 
   function exports(tradesByClass){
     const root = this;
-    console.log(root);
+    //console.log(root);
     _w = root.clientWidth;
     _h = root.clientHeight;
     _r = _w/2.5;
@@ -63,17 +63,16 @@ function FilterByClass(_){
     const tradesNodes = svg.selectAll('.trade')
       .data(_pie);//_pie not include tradeData
     console.log(tradesNodes);
-
-    // let div = root
-    //   .selectAll("tooltip")
-    //   .data([1])
-    // div = div.enter().append("div")
-    //   .attr("class", "tooltip")
-    //   .style("opacity", 0)
-    //   .style("position", "absolute")
-	  //   .style("z-index", "10")
-	  //   .style('width','60')
-    //   .style('height','28');
+   //define div for tooltip
+    const div = d3.select(this)
+      .append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0)
+      .style("position", "absolute")
+	    .style("z-index", "10")
+	    .style('width','60')
+      .style('height','28');
+    console.log(div);
 
 		const tradesEnter = tradesNodes.enter()
 			.append('g')
@@ -89,30 +88,20 @@ function FilterByClass(_){
       .style("fill-opacity", .35)
       .style("stroke", "lightgrey")
       .style("stroke-width", "1px");
-      // .on("mouseover", function(d) {
-      //       div .transition()
-      //           .duration(200)
-      //           .style("opacity", .9);
-      //       div	.html(d.data.class)
-      //           .style("left", (d3.event.pageX) + "px")
-      //           .style("top", (d3.event.pageY - 28) + "px");
-      //       })
-      //   .on("mouseout", function(d) {
-      //       div.transition()
-      //           .duration(500)
-      //           .style("opacity", 0);
 
-
-    tradesEnter
-      .append('text')
-      .style('text-anchor','middle')
-			.attr('dy', '.35em')
-      .attr("transform", function(d) {
-                d.innerRadius = _r-30;
-                d.outerRadius = _r;
-                return "translate(" + _arc.centroid(d) + ")";})//this gives us a pair of coordinates like [50, 50]
-      .style('fill', 'lightgrey')
-      .text(d => d.data.key);//hover
+    d3.selectAll('.trade')
+      .on("mouseover", function(d) {
+            div .transition()
+                .duration(200)
+                .style("opacity", .9);
+            div	.html(d.data.key)
+                .style("left", (d3.event.pageX) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+            })
+        .on("mouseout", function(d) {
+            div.transition()
+                .duration(500)
+                .style("opacity", 0);});
 
 
       d3.selectAll('.trade')

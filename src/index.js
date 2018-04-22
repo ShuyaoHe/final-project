@@ -2,54 +2,55 @@ import * as d3 from 'd3';
 import './style/main.css';
 
 import parse from './utils';
-import OuterArc, { getLineData} from './components/outerArc';
+import OuterArc from './components/outerArc';
 import FilterByClass, {networkFilter} from './components/filterBar';
 import FilterByCountry from './components/countryFilter';
 
-//const outerArc = OuterArc(document.querySelector('.main'));
+const outerArc = OuterArc(document.querySelector('.main'));
 //const filterByClass = FilterByClass(document.querySelector('#filter_bar1')).on('clickPie', (d)=>{ console.log(d)});
 const filterByCountry = FilterByCountry(document.querySelector('.module#filter_bar2'));
-const force = d3.forceSimulation();
+
+
 d3.csv('./data/animal_trade.csv',parse)
   .then((trades) => {
     const tradesByClass = d3.nest()
       .key(function(d){return d.class})
       .entries(trades);
-      const tradesByImporter = d3.nest()
-      .key(function(d){return d.importer})
+    const tradesByImporter = d3.nest()
+    .key(function(d){return d.importer})
+    .entries(trades);
+
+    const tradesByExporter = d3.nest()
+      .key(function(d){return d.exporter})
       .entries(trades);
 
-      const tradesByExporter = d3.nest()
-        .key(function(d){return d.exporter})
-        .entries(trades);
 
+    const countryMap = d3.map();
 
-      const countryMap = d3.map();
-
-      tradesByImporter.forEach(country => {
-        countryMap.set(country.key, {
-          imports:country.values
-        });
+    tradesByImporter.forEach(country => {
+      countryMap.set(country.key, {
+        imports:country.values
       });
-      console.log(countryMap);
+    });
+    // console.log(countryMap);
 
-      // const joinedData = [];
-      tradesByExporter.forEach(country => {
-        // const c = countryMap.get(country.key);
-        const c = countryMap.get(country.key);
-            // console.log(c);
+    // const joinedData = [];
+    tradesByExporter.forEach(country => {
 
-        if(!c){
-          countryMap.set(country.key, {exports:country.values});
+      const c = countryMap.get(country.key);
+          // console.log(c);
 
-        }else{
-          c.exports = country.values;
-        }
-        //
-        // joinedData.push(c);
-      });
+      if(!c){
+        countryMap.set(country.key, {exports:country.values});
 
-      console.log(countryMap.entries());
+      }else{
+        c.exports = country.values;
+      }
+      //
+      // joinedData.push(c);
+    });
+
+
       const countryPoint = countryMap.entries()
         .map(input => {
 
@@ -78,45 +79,22 @@ d3.csv('./data/animal_trade.csv',parse)
         })
 
 
-
-
-
-
-
-
-  // console.log(countryPoint);
-
-  // const nesting = d3.nest()
-  //   .key(d => d.country)
-  //   .key(d => d.exports[0].exportQuantity)
-  //   .entries(countryPoint);
-  //
-  // console.log(countryPoint[0].exports[0]);
-
-
-
+  outerArc(trades);
   d3.select('#filter_bar1')
   			.datum(tradesByClass)
   			.each(networkFilter);
 
-  getLineData.forceSimulation(force);
   d3.select('#plot')
   			.datum(trades)
-  			.each(getLineData);
-
+  			.each(outerArc);
 
   networkFilter.on('clickPie', x =>{
-    let chosen = x[0].values;
+    let chosen = x[0].key;
     console.log(chosen);
-
-// This will redraw the svg every time I click the pie
-    // getLineData.forceSimulation(force).lineData(chosen)
-    // d3.select('#plot')
-    // 			.datum(trades)
-    // 			.each(getLineData);
+    outerArc.animal(chosen);
 
   })
-
+  //getLineData();
 // Now I have got data dispatched from filterBar.js
 // how to dispatch selected data into OuterArc.js in my situation
 // I tried to use  export
@@ -128,7 +106,7 @@ d3.csv('./data/animal_trade.csv',parse)
 
 
 
-  //outerArc(tradesByClass);
+
   //filterByClass(tradesByClass);
   filterByCountry(countryPoint);
 

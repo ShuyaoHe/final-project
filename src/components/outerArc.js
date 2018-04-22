@@ -6,8 +6,8 @@ function OuterArc(_){
 	let _h;
   let countryData;
   let _lineData;
-  let _forceSimulation = d3.forceSimulation();
-
+  let forceSimulation = d3.forceSimulation();
+  let locationLookup;
 
 
   //Force layout related
@@ -17,8 +17,8 @@ function OuterArc(_){
 	const radial = d3.forceRadial();
 
   function exports(trades){
-    console.log(_lineData);
 
+    //data transformation
     const tradesByClass = d3.nest()
       .key(function(d){return d.class})
       .entries(trades);
@@ -26,12 +26,11 @@ function OuterArc(_){
     const tradesByImporter = d3.nest()
     .key(function(d){return d.importer})
     .entries(trades);
-    console.log(tradesByImporter);
+
     const tradesByExporter = d3.nest()
       .key(function(d){return d.exporter})
       .entries(trades);
-
-
+    //get countrynodes' data
     const countryMap = d3.map();
 
     tradesByImporter.forEach(country => {
@@ -39,32 +38,24 @@ function OuterArc(_){
         imports:country.values
       });
     });
-    console.log(countryMap);
-
-    // const joinedData = [];
+    // console.log(countryMap);
     tradesByExporter.forEach(country => {
-      // const c = countryMap.get(country.key);
+
       const c = countryMap.get(country.key);
-          // console.log(c);
 
       if(!c){
         countryMap.set(country.key, {exports:country.values});
-
       }else{
         c.exports = country.values;
       }
-      //
-      // joinedData.push(c);
     });
 
-    console.log(countryMap.entries());
     const countryPoint = countryMap.entries()
       .map(input => {
 
         const output = {};
 
         output.country = input.key;
-
 
         if(input.value.imports) { output.imports = input.value.imports;}
         if(input.value.exports) { output.exports = input.value.exports;}
@@ -76,20 +67,14 @@ function OuterArc(_){
         else {output.exportsum = d3.sum(input.value.exports, d => d.exportQuantity);
               output.importsum = d3.sum(input.value.imports, d => d.importQuantity);
               output.sum = output.exportsum + output.importsum }
-        // if ( typeof input.value.imports ==="undefined") { output.volume = input.value.exports.exportQuantity;}
-        // else if ( typeof input.value.exports ==="undefined") { output.volume = input.value.imports.importerQuantity;}
-        // else {  output.volume = input.value.exports.exportQuantity + input.value.imports.importQuantity;}
-
 
         return output;
 
       })
-      const root = this;
-      console.log(root);
+      const root = d3.select(_);
 
-    _w = root.clientWidth;
-		_h = root.clientHeight;
-
+    _w = _.clientWidth;
+		_h = _.clientHeight;
 
     //set coordinates and radius for countrynodes
     const randomX = d3.randomNormal(_w / 2, 80);
@@ -100,7 +85,6 @@ function OuterArc(_){
     const linear = d3.scaleLinear()
         .domain([min, max])
         .range([15, 100]);
-
 
     // const cr = d3.scaleLinear().domain().range()
 
@@ -115,12 +99,65 @@ function OuterArc(_){
         ...d
       }
     });
-    console.log(countryData);
 
-    // //append DOM elements
+    const filterMap = d3.map();
+
+    countryData.forEach(d => {
+      filterMap.set(d.country, {
+        ...d
+      });
+    });
+    console.log(filterMap);
+    //filter selected class
+    let thisClass, classData;
+    d3.selectAll('.trade')
+      .on('click', (d)=>{
+           thisClass = d.data.key;
+          console.log(thisClass);
+          const selectedClass = tradesByClass.filter((dd)=>{
+            return dd.key == thisClass;
+          })
+
+          //initialize the color of countryCircle
+          d3.selectAll('g.countryCircle').selectAll("circle").style("fill", "lightgrey");
+          //get clicked circles's data
+          var getCircles = d3.selectAll('g.countryCircle').filter(function(dd) {
+            // console.log(this);
+            // console.log(dd);
+            let returnThis = false;
+            if(dd["imports"] == undefined) { return false; }
+            dd.imports.forEach(function(thisImport) {
+              if(thisImport.class === thisClass) {
+                returnThis = true;
+              }
+            });
+            return returnThis;
+
+          });
+          // console.log(getCircles);
+          getCircles.selectAll("circle").style("fill", "red");
+
+          classData = trades.filter(d=> d.class==thisClass);
+          classData.forEach(d=>{
+            const importer = filterMap.get(d.importer);
+            const exporter = filterMap.get(d.exporter);
+          // function renderFrame() {
+          //     ctx.clearRect(0,0,_w,_h);
+          //     const linePath2D = new Path2D();
+          //     const targetPath2D = new Path2D();
 
 
-    let svg = d3.select(this)
+
+
+
+            }
+
+            console.log(importer);
+          })
+
+      });
+    //append DOM elements
+    let svg = root
       .selectAll('.country-layer-svg')
       .data([1])
     svg = svg.enter().append('svg')
@@ -134,7 +171,7 @@ function OuterArc(_){
       .style('pointer-events','none')
       .attr('transform', 'translate(-50, -50)');
 
-      let canvas = d3.select(this)
+      let canvas = root
 			.selectAll('.animation-layer-canvas')
 			.data([1]);
 		canvas = canvas.enter().append('canvas')
@@ -169,12 +206,7 @@ function OuterArc(_){
 
       countriesNodes.exit().remove();
 
-    function changeColor(){
 
-      countryData.forEach(d => {
-
-      })
-    }
 
 
     //Initialize/update and compute a force layout from stationData
@@ -183,12 +215,12 @@ function OuterArc(_){
 			.y(_h/2)
 			.radius(Math.min(_w,_h)/3 - 50);
 
-		_forceSimulation //the simulation
+		forceSimulation //the simulation
 			.force('collide',collide) //
 			.force('radial',radial)
 			.alpha(1);
 
-		_forceSimulation
+		forceSimulation
 			.on('tick', ()=>{
 				//each step of the simulation
 				countriesEnter
@@ -196,36 +228,28 @@ function OuterArc(_){
 					.attr('transform', d => `translate(${d.x}, ${d.y})`);
 			})
       .on('end', ()=>{
-				renderFrame();
+				//renderFrame();
 			})
 			.nodes(countryData);
 
 
-      function renderFrame() {
-        ctx.clearRect(0,0,_w,_h);
-    		const linePath2D = new Path2D();
-    		const targetPath2D = new Path2D();
-
-      }
 }
+
 // Why this doesn't give me the data
     exports.lineData = function(_){
     		if(typeof _lineData == 'undefined') return _lineData;
     		_lineData = _;
     		return this;
     	}
-
-      exports.forceSimulation = function(_){
-      		if(typeof _forceSimulation == 'undefined') return _forceSimulation;
-      		_forceSimulation = _;
-      		return this;
-      	}
+    exports.animal = function(_){
+    		if(typeof _animal == 'undefined') return _animal;
+    		_animal = _;
+        console.log(_animal);
+    		return this;
+    	}
 
     return exports;
 
 }
 
 export default OuterArc;
-
-
-export const getLineData = OuterArc();
