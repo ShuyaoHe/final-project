@@ -108,54 +108,7 @@ function OuterArc(_){
       });
     });
     console.log(filterMap);
-    //filter selected class
-    let thisClass, classData;
-    d3.selectAll('.trade')
-      .on('click', (d)=>{
-           thisClass = d.data.key;
-          console.log(thisClass);
-          const selectedClass = tradesByClass.filter((dd)=>{
-            return dd.key == thisClass;
-          })
 
-          //initialize the color of countryCircle
-          d3.selectAll('g.countryCircle').selectAll("circle").style("fill", "lightgrey");
-          //get clicked circles's data
-          var getCircles = d3.selectAll('g.countryCircle').filter(function(dd) {
-            // console.log(this);
-            // console.log(dd);
-            let returnThis = false;
-            if(dd["imports"] == undefined) { return false; }
-            dd.imports.forEach(function(thisImport) {
-              if(thisImport.class === thisClass) {
-                returnThis = true;
-              }
-            });
-            return returnThis;
-
-          });
-          // console.log(getCircles);
-          getCircles.selectAll("circle").style("fill", "red");
-
-          classData = trades.filter(d=> d.class==thisClass);
-          classData.forEach(d=>{
-            const importer = filterMap.get(d.importer);
-            const exporter = filterMap.get(d.exporter);
-          // function renderFrame() {
-          //     ctx.clearRect(0,0,_w,_h);
-          //     const linePath2D = new Path2D();
-          //     const targetPath2D = new Path2D();
-
-
-
-
-
-            }
-
-            console.log(importer);
-          })
-
-      });
     //append DOM elements
     let svg = root
       .selectAll('.country-layer-svg')
@@ -172,10 +125,10 @@ function OuterArc(_){
       .attr('transform', 'translate(-50, -50)');
 
       let canvas = root
-			.selectAll('.animation-layer-canvas')
+			.selectAll('.network-layer-canvas')
 			.data([1]);
 		canvas = canvas.enter().append('canvas')
-			.attr('class','animation-layer-canvas')
+			.attr('class','network-layer-canvas')
 			.merge(canvas)
 			.attr('width',_w)
 			.attr('height',_h)
@@ -206,7 +159,59 @@ function OuterArc(_){
 
       countriesNodes.exit().remove();
 
+      //filter selected class
+      let thisClass, classData;
+      d3.selectAll('.trade')
+        .on('click', (d)=>{
+            thisClass = d.data.key;
+            console.log(thisClass);
+            const selectedClass = tradesByClass.filter((dd)=>{
+              return dd.key == thisClass;
+            })
+            //initialize the color of countryCircle
+            d3.selectAll('g.countryCircle').selectAll("circle").style("fill", "lightgrey");
+            //get clicked circles's data
+            var getCircles = d3.selectAll('g.countryCircle').filter(function(dd) {
+              // console.log(this);
+              // console.log(dd);
+              let returnThis = false;
+              if(dd["imports"] == undefined) { return false; }
+              dd.imports.forEach(function(thisImport) {
+                if(thisImport.class === thisClass) {
+                  returnThis = true;
+                }
+              });
+              return returnThis;
+            });
 
+            getCircles.selectAll("circle").style("fill", "red");
+
+            classData = trades.filter(d=> d.class==thisClass);
+
+            function renderFrame() {
+                ctx.clearRect(0,0,_w,_h);
+                const linePath2D = new Path2D();
+                // const targetPath2D = new Path2D();
+
+                classData.forEach(d=>{
+                  const importer = filterMap.get(d.importer);
+                  const exporter = filterMap.get(d.exporter);
+
+                  const x0 = exporter.x, y0 = exporter.y, x1 = importer.x, y1 = importer.y;
+
+                  linePath2D.moveTo(x0,y0);
+				          linePath2D.lineTo(x1,y1);
+                  ctx.fillText(trip.bike_nr, x+5, y+5);
+
+
+            });
+            ctx.strokeStyle = 'rgb(255,0,0)';
+ 		        ctx.stroke(linePath2D);
+            requestAnimationFrame(renderFrame);
+          }
+
+         }
+        )
 
 
     //Initialize/update and compute a force layout from stationData
@@ -228,7 +233,7 @@ function OuterArc(_){
 					.attr('transform', d => `translate(${d.x}, ${d.y})`);
 			})
       .on('end', ()=>{
-				//renderFrame();
+				// renderFrame();
 			})
 			.nodes(countryData);
 
@@ -241,12 +246,12 @@ function OuterArc(_){
     		_lineData = _;
     		return this;
     	}
-    exports.animal = function(_){
-    		if(typeof _animal == 'undefined') return _animal;
-    		_animal = _;
-        console.log(_animal);
-    		return this;
-    	}
+    // exports.animal = function(_){
+    // 		if(typeof _animal == 'undefined') return _animal;
+    // 		_animal = _;
+    //     console.log(_animal);
+    // 		return this;
+    // 	}
 
     return exports;
 
