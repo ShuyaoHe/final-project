@@ -188,30 +188,31 @@ function OuterArc(_){
 
             classData = trades.filter(d=> d.class==thisClass);
 
-            function renderFrame() {
-                ctx.clearRect(0,0,_w,_h);
-                const linePath2D = new Path2D();
-                // const targetPath2D = new Path2D();
+         })
 
-                classData.forEach(d=>{
-                  const importer = filterMap.get(d.importer);
-                  const exporter = filterMap.get(d.exporter);
+         classData = trades.filter(d=> d.class==thisClass);
 
-                  const x0 = exporter.x, y0 = exporter.y, x1 = importer.x, y1 = importer.y;
+         function renderFrame() {
+             ctx.clearRect(0,0,_w,_h);
+             const linePath2D = new Path2D();
+             // const targetPath2D = new Path2D();
 
-                  linePath2D.moveTo(x0,y0);
-				          linePath2D.lineTo(x1,y1);
-                  ctx.fillText(trip.bike_nr, x+5, y+5);
+             classData.forEach(d=>{
+               const importer = filterMap.get(d.importer);
+               const exporter = filterMap.get(d.exporter);
+
+               const x0 = exporter.x, y0 = exporter.y, x1 = importer.x, y1 = importer.y;
+
+               linePath2D.moveTo(x0,y0);
+               linePath2D.lineTo(x1,y1);
+               // ctx.fillText(trip.bike_nr, x+5, y+5);
 
 
-            });
-            ctx.strokeStyle = 'rgb(255,0,0)';
- 		        ctx.stroke(linePath2D);
-            requestAnimationFrame(renderFrame);
-          }
-
-         }
-        )
+         });
+         ctx.strokeStyle = 'rgba(255,255,255,.3)';
+         ctx.stroke(linePath2D);
+         requestAnimationFrame(renderFrame);
+       }
 
 
     //Initialize/update and compute a force layout from stationData
@@ -233,7 +234,7 @@ function OuterArc(_){
 					.attr('transform', d => `translate(${d.x}, ${d.y})`);
 			})
       .on('end', ()=>{
-				// renderFrame();
+				renderFrame();
 			})
 			.nodes(countryData);
 
@@ -246,12 +247,7 @@ function OuterArc(_){
     		_lineData = _;
     		return this;
     	}
-    // exports.animal = function(_){
-    // 		if(typeof _animal == 'undefined') return _animal;
-    // 		_animal = _;
-    //     console.log(_animal);
-    // 		return this;
-    // 	}
+
 
     return exports;
 
