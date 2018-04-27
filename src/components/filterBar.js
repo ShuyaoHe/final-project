@@ -20,7 +20,7 @@ function FilterByClass(_){
     _w = root.clientWidth;
     _h = root.clientHeight;
     _r = _w/2.5;
-    _color = d3.scaleOrdinal(d3.schemeSpectral[11]);
+    _color = d3.scaleOrdinal(d3.schemeOranges[9]);
     _padAngle = .03;
 
     console.log(tradesByClass);
@@ -41,7 +41,7 @@ function FilterByClass(_){
       .value((d) => { return d.volume; })(tradeData);
 
     const _arc =d3.arc()
-       .innerRadius(_r-30)
+       .innerRadius(_r-70)
        .outerRadius(_r);
 
     //append DOM elements
@@ -67,12 +67,13 @@ function FilterByClass(_){
     const div = d3.select(this)
       .append("div")
       .attr("class", "tooltip")
+      .attr("id","filter-donut")
       .style("opacity", 0)
       .style("position", "absolute")
 	    .style("z-index", "10")
 	    .style('width','60')
       .style('height','28');
-    console.log(div);
+
 
 		const tradesEnter = tradesNodes.enter()
 			.append('g')
@@ -85,7 +86,7 @@ function FilterByClass(_){
       .append("path")
       .attr("d", _arc)
       .attr("fill", function(d, i) {return _color(i);})
-      .style("fill-opacity", .35)
+      .style("fill-opacity", .9)
       .style("stroke", "lightgrey")
       .style("stroke-width", "1px");
 
@@ -95,8 +96,8 @@ function FilterByClass(_){
                 .duration(200)
                 .style("opacity", .9);
             div	.html(d.data.key)
-                .style("left", (d3.event.pageX) + "px")
-                .style("top", (d3.event.pageY - 28) + "px");
+                .style("left", d3.event.pageX + "px")
+                .style("top", (d3.event.pageY -200) + "px");
             })
         .on("mouseout", function(d) {
             div.transition()
@@ -104,33 +105,7 @@ function FilterByClass(_){
                 .style("opacity", 0);});
 
 
-      d3.selectAll('.trade')
-        .on('click', (d)=>{
-            let thisClass = d.data.key;
-            console.log(thisClass);
-            const selectedClass = tradesByClass.filter((dd)=>{
-              return dd.key == thisClass;
-            })
-            _dispatch.call('clickPie', this, selectedClass);
 
-
-            d3.selectAll('g.countryCircle').selectAll("circle").style("fill", "lightgrey");
-            var getCircles = d3.selectAll('g.countryCircle').filter(function(dd) {
-              // console.log(this);
-              // console.log(dd);
-              let returnThis = false;
-              if(dd["imports"] == undefined) { return false; }
-              dd.imports.forEach(function(thisImport) {
-                if(thisImport.class === thisClass) {
-                  returnThis = true;
-                }
-              });
-              return returnThis;
-            });
-            console.log(getCircles);
-            getCircles.selectAll("circle").style("fill", "red");
-          // console.log(d);
-         })
 
 
   }

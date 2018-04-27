@@ -17,6 +17,11 @@ function OuterArc(_){
 	const radial = d3.forceRadial();
 
   function exports(trades){
+//    console.log(countriesName);
+//    const countriesMap = new Map();
+//    countriesName.forEach(function(c) {
+//      countriesMap.set(c.countrycode, c.Country_Names);
+//    });
 
     //data transformation
     const tradesByClass = d3.nest()
@@ -71,7 +76,7 @@ function OuterArc(_){
         return output;
 
       })
-      const root = d3.select(_);
+    const root = d3.select(_);
 
     _w = _.clientWidth;
 		_h = _.clientHeight;
@@ -86,7 +91,6 @@ function OuterArc(_){
         .domain([min, max])
         .range([15, 100]);
 
-    // const cr = d3.scaleLinear().domain().range()
 
     countryData = countryPoint.map((d,i)=> {
       const[x,y] = [randomX(), randomY()];
@@ -100,14 +104,8 @@ function OuterArc(_){
       }
     });
 
-    const filterMap = d3.map();
-
-    countryData.forEach(d => {
-      filterMap.set(d.country, {
-        ...d
-      });
-    });
-    console.log(filterMap);
+    // console.log(countryData);
+    const filterMap = d3.map(countryData, d => d.country);
 
     //append DOM elements
     let svg = root
@@ -121,8 +119,9 @@ function OuterArc(_){
       .style('position','absolute')
 			.style('top',0)
 			.style('left',0)
-      .style('pointer-events','none')
-      .attr('transform', 'translate(-50, -50)');
+      // .style('pointer-events','none')
+      .attr('transform','translate(-100, -50)');
+
 
       let canvas = root
 			.selectAll('.network-layer-canvas')
@@ -136,17 +135,31 @@ function OuterArc(_){
 			.style('top',0)
 			.style('left',0)
 			.style('pointer-events','none');
-		let ctx = canvas.node().getContext('2d');
 
-    const countriesNodes = svg.selectAll('.countryCircle') //tradeNodes to svg.selectAll('.animalclass')
-			.data(countryData, d=>d.key);            //.data(d=>d.class,)为什么要id_short？？？
+		let ctx = canvas.node().getContext('2d');
+    ctx.translate(-100,-50);
+
+    //Creates Dom elements
+    const countriesNodes = svg.selectAll('.countryCircle')
+			.data(countryData, d=>d.key);
+
+    //Creats tooltip
+    const div = d3.select(this)
+      .append("div")
+      .attr("class", "tooltip")
+      .attr("id","country_circle")
+      .style("opacity", 0)
+      .style("position", "absolute")
+  	  .style("z-index", "10");
+
 		const countriesEnter = countriesNodes.enter()
 			.append('g')
 			.attr('class','countryCircle');
 
+
     countriesEnter.append('circle').attr('r', d => d.r)
                   .style('fill','lightgrey')
-                  .style("fill-opacity", .5);
+                  .style("fill-opacity", .8);
     countriesEnter
 			.merge(countriesNodes)
 			.attr('transform', d => `translate(${d.x}, ${d.y})`);
@@ -155,9 +168,26 @@ function OuterArc(_){
       .append('text').text(d => d.country)
       .style('text-anchor','middle')
       .attr('dy', '.35em')
-      .style('fill', 'lightgrey');
+      .style('fill', 'rgba(41,41,41)');
 
       countriesNodes.exit().remove();
+
+     //tooltip
+      d3.selectAll('g.countryCircle')
+        .on("mouseover", function(d) {
+          console.log(d);
+            // console.log(countriesMap.get(d.country));
+              div.transition()
+                  .duration(200)
+                  .style("opacity", .9);
+              div.html(d.country + "<br/>"  + "Total Import: " + Math.floor(d.importsum) + "<br/>" +"Total Export: " + Math.floor(d.exportsum))
+                  .style("left", (d.x - 100) + "px")
+                  .style("top", (d.y - 40) + "px");
+              })
+          .on("mouseout", function(d) {
+              div.transition()
+                  .duration(500)
+                  .style("opacity", 0);});
 
       //filter selected class
       let thisClass, classData;
@@ -169,50 +199,85 @@ function OuterArc(_){
               return dd.key == thisClass;
             })
             //initialize the color of countryCircle
-            d3.selectAll('g.countryCircle').selectAll("circle").style("fill", "lightgrey");
-            //get clicked circles's data
-            var getCircles = d3.selectAll('g.countryCircle').filter(function(dd) {
-              // console.log(this);
-              // console.log(dd);
-              let returnThis = false;
-              if(dd["imports"] == undefined) { return false; }
-              dd.imports.forEach(function(thisImport) {
-                if(thisImport.class === thisClass) {
-                  returnThis = true;
-                }
-              });
-              return returnThis;
-            });
+            d3.selectAll('g.countryCircle').selectAll("circle").style("fill", "rgba(41,41,41)");
+            //get clicked circles's data and change color
+            var getCircles = d3.selectAll('g.countryCircle')
+                 .filter(function(dd) {
+                  // console.log(this);
+                  let returnThis = false;
+                  if(dd["imports"] == undefined || dd["exports"] == undefined) { return false; }
+                  dd.imports.forEach(function(thisImport) {
+                    if(thisImport.class === thisClass) {
+                      returnThis = true;
+                    }
+                  })
+                  dd.exports.forEach(function(thisExport) {
+                    if(thisExport.class === thisClass) {
+                      returnThis = true;
+                    }
+                  })
+                  return returnThis;
+                });
+            getCircles.selectAll("circle").style("fill", "rgba(255,255,255)");
 
-            getCircles.selectAll("circle").style("fill", "red");
+            //get Top 5 importers' data
+            function compare(property){
+                return function(a,b){
+                    var value1 = a[property].sum;
+                    var value2 = b[property].sum;
+                    return value1 - value2;
+                }
+              }
 
             classData = trades.filter(d=> d.class==thisClass);
+            const importData = d3.nest()
+                .key(function(d){return d.importer})
+                .rollup(function(v) { return {sum: d3.sum(v, function(d) { return d.importQuantity; }), raw: v }})
+                .entries(classData);
 
-         })
+            var top5Import = importData.sort((compare('value'))).slice(-5);
+            // const exportData = d3.nest()
+            //     .key(function(d){return d.exporter})
+            //     .rollup(function(v) { return d3.sum(v, function(d) { return d.exportQuantity; }); })
+            //     .entries(classData);
+            // var top5Export = exportData.sort((compare('value'))).slice(-10);
 
-         classData = trades.filter(d=> d.class==thisClass);
+            console.log(top5Import);
+            top5Import.forEach(function(importer) {
+              // console.log(importer);
+              let cc = d3.selectAll('g.countryCircle').filter(function(c) {
+                // console.log(c);
+                return c.country === importer.key;
+              });
+              console.log(cc);
+              cc.select("circle").style("fill","rgba(78,100,143)");
+            });
+            //get Top 5 importers' and corresponding exporters' coordinates
+            const imToEx =[];
+            top5Import.forEach(d=>{
+              const ctr = filterMap.get(d.key);
+              const x1 = ctr.x,
+                y1 = ctr.y;
+               // console.log(x1,y1);
+               let expData = d.value.raw;
 
-         function renderFrame() {
-             ctx.clearRect(0,0,_w,_h);
-             const linePath2D = new Path2D();
-             // const targetPath2D = new Path2D();
+               expData.forEach(dd=>{ //console.log(dd);
+                 const exCood = filterMap.get(dd.exporter);
+                 const x0 = exCood.x, y0 = exCood.y;
+                 imToEx.push({
+                   start: [x0, y0],
+                   end: [x1, y1]
+                 })
+               })
 
-             classData.forEach(d=>{
-               const importer = filterMap.get(d.importer);
-               const exporter = filterMap.get(d.exporter);
+            });
+            // imToEx.forEach((d,i) =>{
+            // console.log(imToEx[i].start);})
 
-               const x0 = exporter.x, y0 = exporter.y, x1 = importer.x, y1 = importer.y;
-
-               linePath2D.moveTo(x0,y0);
-               linePath2D.lineTo(x1,y1);
-               // ctx.fillText(trip.bike_nr, x+5, y+5);
-
+            renderFrame(imToEx);
 
          });
-         ctx.strokeStyle = 'rgba(255,255,255,.3)';
-         ctx.stroke(linePath2D);
-         requestAnimationFrame(renderFrame);
-       }
+
 
 
     //Initialize/update and compute a force layout from stationData
@@ -232,22 +297,41 @@ function OuterArc(_){
 				countriesEnter
 					.merge(countriesNodes)
 					.attr('transform', d => `translate(${d.x}, ${d.y})`);
+
 			})
       .on('end', ()=>{
-				renderFrame();
+				//renderFrame();
 			})
 			.nodes(countryData);
 
 
+      //draw line function
+    function renderFrame(imToEx) {
+      console.log('drawLine');
+        ctx.clearRect(0,0,_w,_h);
+        const linePath2D = new Path2D();
+
+        // const x0 = imToEx.start[0], y0 = imToEx.start[1],
+        //       x1 = imToEx.end[0], y1 = imToEx.end[1];
+        console.log(imToEx);
+        imToEx.forEach((d,i) =>{
+          // console.log(d);
+          const x0 = imToEx[i].start[0], y0 = imToEx[i].start[1],
+                x1 = imToEx[i].end[0], y1 = imToEx[i].end[1];
+
+
+          linePath2D.moveTo(x0,y0);
+          linePath2D.lineTo(x1,y1);
+
+          })
+          ctx.strokeStyle = 'rgba(255,255,255,.3)';
+          ctx.stroke(linePath2D);
+
+      
+    }
+
+
 }
-
-// Why this doesn't give me the data
-    exports.lineData = function(_){
-    		if(typeof _lineData == 'undefined') return _lineData;
-    		_lineData = _;
-    		return this;
-    	}
-
 
     return exports;
 

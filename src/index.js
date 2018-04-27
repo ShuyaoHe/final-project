@@ -8,11 +8,15 @@ import FilterByCountry from './components/countryFilter';
 
 const outerArc = OuterArc(document.querySelector('.main'));
 //const filterByClass = FilterByClass(document.querySelector('#filter_bar1')).on('clickPie', (d)=>{ console.log(d)});
-const filterByCountry = FilterByCountry(document.querySelector('.module#filter_bar2'));
+// const filterByCountry = FilterByCountry(document.querySelector('.module#filter_bar2'));
 
+Promise.all([
+    d3.csv('./data/animal_trade.csv',parse),
+  d3.csv('./data/countryName.csv')
+]).then((loadData) => {
+  const trades = loadData[0];
+  const countriesName = loadData[1];
 
-d3.csv('./data/animal_trade.csv',parse)
-  .then((trades) => {
     const tradesByClass = d3.nest()
       .key(function(d){return d.class})
       .entries(trades);
@@ -24,7 +28,6 @@ d3.csv('./data/animal_trade.csv',parse)
       .key(function(d){return d.exporter})
       .entries(trades);
 
-
     const countryMap = d3.map();
 
     tradesByImporter.forEach(country => {
@@ -32,9 +35,7 @@ d3.csv('./data/animal_trade.csv',parse)
         imports:country.values
       });
     });
-    // console.log(countryMap);
 
-    // const joinedData = [];
     tradesByExporter.forEach(country => {
 
       const c = countryMap.get(country.key);
@@ -49,7 +50,6 @@ d3.csv('./data/animal_trade.csv',parse)
       //
       // joinedData.push(c);
     });
-
 
       const countryPoint = countryMap.entries()
         .map(input => {
@@ -69,21 +69,18 @@ d3.csv('./data/animal_trade.csv',parse)
           else {output.exportsum = d3.sum(input.value.exports, d => d.exportQuantity);
                 output.importsum = d3.sum(input.value.imports, d => d.importQuantity);
                 output.sum = output.exportsum + output.importsum }
-          // if ( typeof input.value.imports ==="undefined") { output.volume = input.value.exports.exportQuantity;}
-          // else if ( typeof input.value.exports ==="undefined") { output.volume = input.value.imports.importerQuantity;}
-          // else {  output.volume = input.value.exports.exportQuantity + input.value.imports.importQuantity;}
-
 
           return output;
 
         })
 
-
+//
+// console.log(countriesName);
   outerArc(trades);
-  d3.select('#filter_bar1')
+  d3.select('#filter_bar2')
   			.datum(tradesByClass)
   			.each(networkFilter);
-
+  //
   d3.select('#plot')
   			.datum(trades)
   			.each(outerArc);
@@ -94,20 +91,7 @@ d3.csv('./data/animal_trade.csv',parse)
     outerArc.animal(chosen);
 
   })
-  //getLineData();
-// Now I have got data dispatched from filterBar.js
-// how to dispatch selected data into OuterArc.js in my situation
-// I tried to use  export
 
 
-// What would be a better data stucture?
-
-// In Histogram.js, you export two functions to draw differnt histogram, why didn't use the same idea on Animation?
-
-
-
-
-  //filterByClass(tradesByClass);
-  filterByCountry(countryPoint);
 
   });
