@@ -8,6 +8,7 @@ function OuterArc(_){
   let _lineData;
   let forceSimulation = d3.forceSimulation();
   let locationLookup;
+  let  _countrynameData=[];
 
 
   //Force layout related
@@ -17,11 +18,12 @@ function OuterArc(_){
 	const radial = d3.forceRadial();
 
   function exports(trades){
-//    console.log(countriesName);
-//    const countriesMap = new Map();
-//    countriesName.forEach(function(c) {
-//      countriesMap.set(c.countrycode, c.Country_Names);
-//    });
+   console.log(_countrynameData);
+   const countriesMap = new Map();
+   _countrynameData.forEach(function(c) {
+     countriesMap.set(c.countrycode, c.Country_Names);
+   });
+   console.log(countriesMap);
 
     //data transformation
     const tradesByClass = d3.nest()
@@ -159,7 +161,15 @@ function OuterArc(_){
 
     countriesEnter.append('circle').attr('r', d => d.r)
                   .style('fill','lightgrey')
-                  .style("fill-opacity", .8);
+                  .style("fill-opacity", .7)
+                  .on('mouseover', function(d) {
+                        d3.select(this).style('fill-opacity', 1);
+
+                    })
+                    .on('mouseout', function(d) {
+                        d3.select(this).style('fill-opacity', .7);
+
+                    });
     countriesEnter
 			.merge(countriesNodes)
 			.attr('transform', d => `translate(${d.x}, ${d.y})`);
@@ -167,6 +177,8 @@ function OuterArc(_){
     countriesEnter
       .append('text').text(d => d.country)
       .style('text-anchor','middle')
+      .style('font-family', 'Helvetica')
+      .style('font-weight', 300)
       .attr('dy', '.35em')
       .style('fill', 'rgba(41,41,41)');
 
@@ -175,12 +187,12 @@ function OuterArc(_){
      //tooltip
       d3.selectAll('g.countryCircle')
         .on("mouseover", function(d) {
-          console.log(d);
-            // console.log(countriesMap.get(d.country));
+          // console.log(d);
+            const ctn = countriesMap.get(d.country);
               div.transition()
                   .duration(200)
                   .style("opacity", .9);
-              div.html(d.country + "<br/>"  + "Total Import: " + Math.floor(d.importsum) + "<br/>" +"Total Export: " + Math.floor(d.exportsum))
+              div.html(ctn + "<br/>"  + "Total Import: " + Math.floor(d.importsum) + "<br/>" +"Total Export: " + Math.floor(d.exportsum))
                   .style("left", (d.x - 100) + "px")
                   .style("top", (d.y - 40) + "px");
               })
@@ -193,6 +205,7 @@ function OuterArc(_){
       let thisClass, classData;
       d3.selectAll('.trade')
         .on('click', (d)=>{
+
             thisClass = d.data.key;
             console.log(thisClass);
             const selectedClass = tradesByClass.filter((dd)=>{
@@ -327,13 +340,19 @@ function OuterArc(_){
           ctx.strokeStyle = 'rgba(255,255,255,.3)';
           ctx.stroke(linePath2D);
 
-      
+
     }
 
 
 }
 
+exports.getCountryName = function(_){
+ _countrynameData = _;
+  return this;
+}
     return exports;
+
+
 
 }
 

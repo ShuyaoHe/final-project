@@ -69,18 +69,21 @@ html,body{
 }
 
 #write_up_2 h3{
-  grid-area:write_up_2;
-	z-index:1000;
-	height:100%;
-	position: relative;
-	margin-left:10%;
-	margin:10%;
 	font-family: Pragmatica-web, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 22px;
   color: #bbb;
   font-weight: 200;
 
+}
+
+#write_up_2{
+	grid-area:write_up_2;
+	z-index:1000;
+	height:100%;
+	position: relative;
+	margin-left:10%;
+	margin:10%;
 }
 
 	.main{
@@ -114,7 +117,7 @@ html,body{
     height: 60px;
     padding: 12px;
     font: 12px Helvetica;
-		font-weight:600;
+		font-weight:500;
     background: rgba(208,130,65);
 		color:rgba(41,41,41);
     border: 0px;
