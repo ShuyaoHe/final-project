@@ -139,7 +139,10 @@ function OuterArc(_){
 			.style('pointer-events','none');
 
 		let ctx = canvas.node().getContext('2d');
+    ctx.restore();
+    ctx.save();
     ctx.translate(-100,-50);
+
 
     //Creates Dom elements
     const countriesNodes = svg.selectAll('.countryCircle')
