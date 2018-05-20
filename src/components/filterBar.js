@@ -86,9 +86,17 @@ function FilterByClass(_){
       .append("path")
       .attr("d", _arc)
       .attr("fill", function(d, i) {return _color(i);})
-      .style("fill-opacity", .9)
+      .style("fill-opacity", 1)
       .style("stroke", "lightgrey")
-      .style("stroke-width", "1px");
+      .style("stroke-width", "1px")
+      .on('mouseover', function(d) {
+            d3.select(this).style('fill-opacity', .8);
+
+        })
+        .on('mouseout', function(d) {
+            d3.select(this).style('fill-opacity', 1);
+
+        });
 
     d3.selectAll('.trade')
       .on("mouseover", function(d) {
@@ -96,8 +104,8 @@ function FilterByClass(_){
                 .duration(200)
                 .style("opacity", .9);
             div	.html(d.data.key)
-                .style("left", d3.event.pageX + "px")
-                .style("top", (d3.event.pageY -200) + "px");
+                .style("left", (d3.event.pageX -80) + "px")
+                .style("top", (d3.event.pageY -300) + "px");
             })
         .on("mouseout", function(d) {
             div.transition()
