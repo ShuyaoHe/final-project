@@ -44,6 +44,7 @@ html,body{
 #title h1{
 	color:white;
 	font-size: 40px;
+	font-family: Times New Roman;
 }
 #write_up_1{
   /* grid-area:write_up_1; */
