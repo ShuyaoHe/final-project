@@ -120,9 +120,9 @@ function OuterArc(_){
 			.attr('height',_h)
       .style('position','absolute')
 			.style('top',0)
-			.style('left',0)
+			.style('left',0);
       // .style('pointer-events','none')
-      .attr('transform','translate(-100, -50)');
+      // .attr('transform','translate(-100, -50)');
 
 
       let canvas = root
@@ -139,9 +139,9 @@ function OuterArc(_){
 			.style('pointer-events','none');
 
 		let ctx = canvas.node().getContext('2d');
-    ctx.restore();
-    ctx.save();
-    ctx.translate(-100,-50);
+    // ctx.restore();
+    // ctx.save();
+    // ctx.translate(-100,-50);
 
 
     //Creates Dom elements
@@ -266,7 +266,7 @@ function OuterArc(_){
                 return c.country === importer.key;
               });
               console.log(cc);
-              cc.select("circle").style("fill","rgba(78,100,143)");
+              cc.select("circle").style("fill","rgb(78,100,143)");
             });
             //get Top 5 importers' and corresponding exporters' coordinates
             const imToEx =[];
@@ -340,7 +340,7 @@ function OuterArc(_){
           linePath2D.lineTo(x1,y1);
 
           })
-          ctx.strokeStyle = 'rgba(255,255,255,.3)';
+          ctx.strokeStyle = 'rgba(255,255,255,.35)';
           ctx.stroke(linePath2D);
 
 
