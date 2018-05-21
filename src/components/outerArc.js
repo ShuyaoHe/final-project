@@ -196,8 +196,8 @@ function OuterArc(_){
                   .duration(200)
                   .style("opacity", .9);
               div.html(ctn + "<br/>"  + "Total Import: " + Math.floor(d.importsum) + "<br/>" +"Total Export: " + Math.floor(d.exportsum))
-                  .style("left", (d.x - 100) + "px")
-                  .style("top", (d.y - 40) + "px");
+                  .style("left", d.x + "px")
+                  .style("top", (d.y - 10) + "px");
               })
           .on("mouseout", function(d) {
               div.transition()
@@ -340,7 +340,7 @@ function OuterArc(_){
           linePath2D.lineTo(x1,y1);
 
           })
-          ctx.strokeStyle = 'rgba(255,255,255,.35)';
+          ctx.strokeStyle = 'rgba(255,255,255,.3)';
           ctx.stroke(linePath2D);
 
 
